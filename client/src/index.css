@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;700&family=Oxanium:wght@400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Dark, rugged, neon-accented palette */
+  --background: 240 10% 4%;       /* Very dark almost black */
+  --foreground: 0 0% 95%;         /* Off-white */
+  
+  --primary: 16 100% 50%;         /* Bright Neon Orange/Red - Aggressive */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 240 6% 10%;        /* Dark Grey */
+  --secondary-foreground: 0 0% 90%;
+
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+
+  --accent: 142 70% 50%;          /* Neon Green for success/logs */
+  --accent-foreground: 240 10% 4%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 16 100% 50%;
+
+  --radius: 0.25rem; /* Sharp corners fit the masculine/rugged theme better */
+  
+  --font-display: 'Oxanium', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Custom Selection Color */
+::selection {
+  background-color: hsl(var(--primary));
+  color: white;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary selection:text-white;
+    font-family: var(--font-body);
+    background-image: 
+      radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.05) 0%, transparent 50%),
+      linear-gradient(to bottom, transparent, hsl(var(--background)) 80%);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight uppercase;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
+  }
+  
+  .border-glow {
+    box-shadow: 0 0 15px -3px hsl(var(--primary) / 0.3);
+  }
+  
+  .glass-card {
+    @apply bg-secondary/30 backdrop-blur-md border border-white/5;
+  }
+
+  .clip-path-slant {
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
