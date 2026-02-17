@@ -15,5 +15,16 @@ export const insertPostSchema = createInsertSchema(posts).omit({ id: true, creat
   authKey: z.string()
 });
 
+export const logs = pgTable("logs", {
+  id: serial("id").primaryKey(),
+  message: text("message").notNull(),
+  level: text("level").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const insertLogSchema = createInsertSchema(logs).omit({ id: true, timestamp: true });
+
 export type Post = typeof posts.$inferSelect;
 export type InsertPost = z.infer<typeof insertPostSchema>;
+export type Log = typeof logs.$inferSelect;
+export type InsertLog = z.infer<typeof insertLogSchema>;
