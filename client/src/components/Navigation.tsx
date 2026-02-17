@@ -19,6 +19,7 @@ export function Navigation() {
     { name: "Home", href: "/" },
     { name: "Quotes", href: "/quotes" },
     { name: "Logs", href: "/logs" },
+    { name: "Admin", href: "/admin" },
   ];
 
   return (
