@@ -131,7 +131,7 @@ export default function AdminPanel() {
             <DialogTrigger asChild>
               <Button><Plus className="mr-2 h-4 w-4" /> New Post</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Post</DialogTitle>
               </DialogHeader>
@@ -189,7 +189,7 @@ export default function AdminPanel() {
 
       {isEditing && (
         <Dialog open={!!isEditing} onOpenChange={(open) => !open && setIsEditing(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Post</DialogTitle>
             </DialogHeader>
@@ -283,7 +283,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
                       }
                     }}
                   >
-                    <Button type="button" size="icon" variant="outline">
+                    <Button type="button" size="sm" variant="outline" className="h-10 w-10 p-0">
                       <ImagePlus className="h-4 w-4" />
                     </Button>
                   </ObjectUploader>
