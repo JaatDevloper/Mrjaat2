@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import { Navigation } from "@/components/Navigation";
-import { type Post } from "@shared/schema";
+import { type Post } from "../../../shared/schema.js";
 import { Loader2, ArrowLeft, Calendar, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";

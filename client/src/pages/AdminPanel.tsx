@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl,FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertPostSchema, type Post } from "@shared/schema";
+import { insertPostSchema, type Post } from "../../../shared/schema.js";
 import { Loader2, Plus, Pencil, Trash2, Key } from "lucide-react";
 
 export default function AdminPanel() {

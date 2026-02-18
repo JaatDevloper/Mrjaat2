@@ -1,5 +1,5 @@
 import { Content } from "./mongodb.js";
-import { type Post, type InsertPost } from "@shared/schema";
+import { type Post, type InsertPost } from "../shared/schema.js";
 
 export interface IStorage {
   getPosts(): Promise<Post[]>;

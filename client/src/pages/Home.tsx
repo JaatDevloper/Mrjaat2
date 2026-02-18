@@ -14,7 +14,7 @@ const GridBackground = () => (
 );
 
 import { useQuery } from "@tanstack/react-query";
-import { type Post } from "@shared/schema";
+import { type Post } from "../../../shared/schema.js";
 
 export default function Home() {
   const { data: posts } = useQuery<Post[]>({
