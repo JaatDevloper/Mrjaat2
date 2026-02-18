@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl,FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { apiRequest, queryClient } from "../lib/queryClient";
+import { useToast } from "../hooks/use-toast";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
+import { Form, FormControl,FormField, FormItem, FormLabel } from "../components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertPostSchema, type Post } from "@shared/schema.js";
-import { Loader2, Plus, Pencil, Trash2, Key } from "lucide-react";
-import { AdminAuthPrompt } from "@/components/AdminAuthPrompt";
+import { insertPostSchema, type Post } from "../../../shared/schema.js";
+import { Loader2, Plus, Pencil, Trash2, ImagePlus } from "lucide-react";
+import { AdminAuthPrompt } from "../components/AdminAuthPrompt";
+import { ObjectUploader } from "../components/ObjectUploader";
+import { useUpload } from "../hooks/use-upload";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -134,7 +136,7 @@ export default function AdminPanel() {
                 <DialogTitle>Create New Post</DialogTitle>
               </DialogHeader>
               <PostForm 
-                onSubmit={(data) => createMutation.mutate(data)} 
+                onSubmit={(data: any) => createMutation.mutate(data)} 
                 isPending={createMutation.isPending}
                 authKey={authKey}
               />
@@ -205,6 +207,8 @@ export default function AdminPanel() {
 }
 
 function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
+  const { toast } = useToast();
+  const { getUploadParameters } = useUpload();
   const form = useForm({
     resolver: zodResolver(insertPostSchema),
     defaultValues: initialData ? { ...initialData, authKey } : {
@@ -244,8 +248,28 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
           name="thumbnail"
           render={({ field }: { field: any }) => (
             <FormItem>
-              <FormLabel>Thumbnail URL</FormLabel>
-              <FormControl><Input {...field} /></FormControl>
+              <FormLabel>Thumbnail</FormLabel>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input {...field} placeholder="Thumbnail URL or upload" />
+                </FormControl>
+                <ObjectUploader
+                  onGetUploadParameters={getUploadParameters}
+                  onComplete={(result: any) => {
+                    if (result.successful && result.successful.length > 0) {
+                      const file = result.successful[0];
+                      // Use the objectPath returned by the backend in Step 1
+                      const objectPath = file.response?.body?.objectPath || "";
+                      if (objectPath) {
+                        form.setValue("thumbnail", objectPath);
+                        toast({ title: "Thumbnail uploaded" });
+                      }
+                    }
+                  }}
+                >
+                  <ImagePlus className="h-4 w-4" />
+                </ObjectUploader>
+              </div>
             </FormItem>
           )}
         />

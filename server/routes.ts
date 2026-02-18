@@ -5,10 +5,14 @@ import { insertPostSchema } from "../shared/schema.js";
 import { z } from "zod";
 import { Auth } from "./mongodb.js";
 
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage/index.js";
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Register object storage routes
+  registerObjectStorageRoutes(app);
   
   // Initialize admin key if not exists
   const ADMIN_KEY = "A9x7QpL2#vT8mZr5KjW4";
