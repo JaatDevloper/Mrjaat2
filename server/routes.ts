@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage.js";
 import { insertPostSchema } from "../shared/schema.js";
 import { z } from "zod";
-import { Auth } from "./mongodb.js";
+import { Auth, Content } from "./mongodb.js";
 import path from "path";
 import express from "express";
 
@@ -11,8 +11,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Serve uploads directory
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+  // Increase payload limit for Base64 images
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Initialize admin key if not exists
   const ADMIN_KEY = "A9x7QpL2#vT8mZr5KjW4";
@@ -50,7 +51,7 @@ export async function registerRoutes(
 
   app.post("/api/posts", authMiddleware, async (req, res) => {
     try {
-      console.log("Create post request body:", JSON.stringify(req.body, null, 2));
+      console.log("Create post request body keys:", Object.keys(req.body));
       const postData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(postData);
       res.status(201).json(post);
@@ -83,52 +84,10 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  // Upload routes
+  // Simplified upload route that just returns base64
   app.post("/api/uploads/request-url", authMiddleware, async (req, res) => {
-    try {
-      const { name, contentType } = req.body;
-      const fileName = `${Date.now()}-${name}`;
-      // In this local implementation, we'll just return a local upload URL
-      // Since we don't have S3, we'll use a local endpoint that handles the PUT
-      const protocol = req.secure ? "https" : "http";
-      const host = req.get("host");
-      const uploadURL = `${protocol}://${host}/api/uploads/direct/${fileName}`;
-      
-      res.json({
-        uploadURL,
-        objectPath: `/uploads/${fileName}`,
-        metadata: {
-          name,
-          contentType: contentType || "application/octet-stream"
-        }
-      });
-    } catch (err) {
-      console.error("Upload request error:", err);
-      res.status(500).json({ message: "Failed to generate upload URL" });
-    }
-  });
-
-  app.put("/api/uploads/direct/:filename", async (req, res) => {
-    try {
-      const uploadDir = path.join(process.cwd(), "uploads");
-      await fs.mkdir(uploadDir, { recursive: true });
-      const filePath = path.join(uploadDir, req.params.filename);
-      const writeStream = (await import("fs")).createWriteStream(filePath);
-      req.pipe(writeStream);
-      writeStream.on("finish", () => {
-        res.json({ success: true });
-      });
-      writeStream.on("error", (err) => {
-        console.error("Write stream error:", err);
-        res.status(500).json({ message: "Upload failed" });
-      });
-    } catch (err) {
-      console.error("Direct upload error:", err);
-      res.status(500).json({ message: "Upload failed" });
-    }
+    res.status(400).json({ message: "Please upload directly to MongoDB via post creation" });
   });
 
   return httpServer;
 }
-
-import fs from "fs/promises";

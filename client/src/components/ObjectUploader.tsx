@@ -1,30 +1,15 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import Uppy from "@uppy/core";
-import type { UppyFile, UploadResult } from "@uppy/core";
-import DashboardModal from "@uppy/react/dashboard-modal";
-import "@uppy/core/css/style.min.css";
-import "@uppy/dashboard/css/style.min.css";
-import AwsS3 from "@uppy/aws-s3";
 import { Button } from "./ui/button";
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
-  /**
-   * Function to get upload parameters for each file.
-   * IMPORTANT: This receives the file object - use file.name, file.size, file.type
-   * to request per-file presigned URLs from your backend.
-   */
-  onGetUploadParameters: (
-    file: UppyFile<Record<string, unknown>, Record<string, unknown>>
-  ) => Promise<{
-    method: "PUT";
-    url: string;
-    headers?: Record<string, string>;
-  }>;
+  onGetUploadParameters?: (
+    file: any
+  ) => Promise<any>;
   onComplete?: (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
+    result: any
   ) => void;
   buttonClassName?: string;
   children: ReactNode;
@@ -67,36 +52,47 @@ export function ObjectUploader({
   buttonClassName,
   children,
 }: ObjectUploaderProps) {
-  const [showModal, setShowModal] = useState(false);
-  const [uppy] = useState(() =>
-    new Uppy({
-      restrictions: {
-        maxNumberOfFiles,
-        maxFileSize,
-      },
-      autoProceed: false,
-    })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
-      })
-      .on("complete", (result) => {
-        onComplete?.(result);
-      })
-  );
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > maxFileSize) {
+      alert("File is too large");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      onComplete?.({
+        successful: [{
+          response: {
+            body: {
+              objectPath: base64String
+            }
+          }
+        }]
+      } as any);
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div>
-      <Button onClick={() => setShowModal(true)} className={buttonClassName}>
+      <input
+        type="file"
+        id="file-upload"
+        className="hidden"
+        accept="image/*"
+        onChange={handleFileSelect}
+      />
+      <Button 
+        type="button"
+        onClick={() => document.getElementById("file-upload")?.click()} 
+        className={buttonClassName}
+      >
         {children}
       </Button>
-
-      <DashboardModal
-        uppy={uppy}
-        open={showModal}
-        onRequestClose={() => setShowModal(false)}
-        proudlyDisplayPoweredByUppy={false}
-      />
     </div>
   );
 }
