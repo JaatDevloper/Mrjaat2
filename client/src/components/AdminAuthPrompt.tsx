@@ -51,7 +51,7 @@ export function AdminAuthPrompt({
               type="password"
               placeholder="Enter Admin Key"
               value={authKey}
-              onChange={(e) => setAuthKey(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAuthKey(e.target.value)}
               className="bg-secondary/20"
               autoFocus
             />

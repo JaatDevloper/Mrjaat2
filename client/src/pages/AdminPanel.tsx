@@ -10,13 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl,FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertPostSchema, type Post } from "../../../shared/schema.js";
+import { insertPostSchema, type Post } from "@shared/schema.js";
 import { Loader2, Plus, Pencil, Trash2, Key } from "lucide-react";
 import { AdminAuthPrompt } from "@/components/AdminAuthPrompt";
 
 export default function AdminPanel() {
   const { toast } = useToast();
   const [authKey, setAuthKey] = useState<string>(localStorage.getItem("admin_key") || "");
+  const [isEditing, setIsEditing] = useState<Post | null>(null);
   const [authDialog, setAuthDialog] = useState<{ isOpen: boolean; type: "edit" | "delete"; post: Post | null }>({
     isOpen: false,
     type: "delete",
@@ -185,17 +186,17 @@ export default function AdminPanel() {
       />
 
       {isEditing && (
-        <Dialog open={!!isEditing} onOpenChange={() => setIsEditing(null)}>
+        <Dialog open={!!isEditing} onOpenChange={(open) => !open && setIsEditing(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Post</DialogTitle>
             </DialogHeader>
             <PostForm 
-              initialData={isEditing}
-              onSubmit={(data) => updateMutation.mutate({ id: isEditing.id.toString(), data })}
-              isPending={updateMutation.isPending}
-              authKey={authKey}
-            />
+                initialData={isEditing}
+                onSubmit={(data: any) => updateMutation.mutate({ id: isEditing!.id.toString(), data })}
+                isPending={updateMutation.isPending}
+                authKey={authKey}
+              />
           </DialogContent>
         </Dialog>
       )}
@@ -221,7 +222,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
+          render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl><Input {...field} /></FormControl>
@@ -231,7 +232,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
+          render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl><Textarea {...field} /></FormControl>
@@ -241,7 +242,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
         <FormField
           control={form.control}
           name="thumbnail"
-          render={({ field }) => (
+          render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel>Thumbnail URL</FormLabel>
               <FormControl><Input {...field} /></FormControl>
@@ -251,7 +252,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
         <FormField
           control={form.control}
           name="content"
-          render={({ field }) => (
+          render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel>Content (HTML supported)</FormLabel>
               <FormControl>
