@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import { insertPostSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -20,6 +20,12 @@ export async function registerRoutes(
   app.get("/api/posts", async (_req, res) => {
     const posts = await storage.getPosts();
     res.json(posts);
+  });
+
+  app.get("/api/posts/:id", async (req, res) => {
+    const post = await storage.getPost(req.params.id);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    res.json(post);
   });
 
   app.post("/api/posts", authMiddleware, async (req, res) => {

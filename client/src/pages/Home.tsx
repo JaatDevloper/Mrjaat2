@@ -13,7 +13,14 @@ const GridBackground = () => (
   </div>
 );
 
+import { useQuery } from "@tanstack/react-query";
+import { type Post } from "@shared/schema";
+
 export default function Home() {
+  const { data: posts } = useQuery<Post[]>({
+    queryKey: ["/api/posts"],
+  });
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
@@ -90,7 +97,65 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Feature Cards Section */}
+      {/* Blog Posts Section */}
+      <section className="container mx-auto px-4 py-20 border-t border-white/5">
+        <div className="flex items-center justify-between mb-12">
+          <h2 className="text-4xl font-display font-black tracking-tight uppercase">Latest Articles</h2>
+          <div className="h-1 flex-1 mx-8 bg-gradient-to-r from-primary/50 to-transparent hidden md:block" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {posts?.map((post) => (
+            <motion.div 
+              key={post.id}
+              whileHover={{ y: -8 }}
+              className="group glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col h-full hover:border-primary/30 transition-all duration-300"
+            >
+              <Link href={`/post/${post.id}`}>
+                <a className="block relative aspect-video overflow-hidden">
+                  <img 
+                    src={post.thumbnail} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    alt={post.title} 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span className="text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                      Read Full Article <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </a>
+              </Link>
+              <div className="p-6 flex flex-col flex-1">
+                <div className="text-[10px] font-mono text-primary uppercase tracking-[0.2em] mb-3">
+                  {post.createdAt ? format(new Date(post.createdAt), 'MMM dd, yyyy') : 'Recently Posted'}
+                </div>
+                <h3 className="text-xl font-display font-bold text-white group-hover:text-primary transition-colors mb-3 line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-muted-foreground text-sm line-clamp-3 mb-6 flex-1">
+                  {post.description}
+                </p>
+                <Link href={`/post/${post.id}`}>
+                  <a className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white group-hover:text-primary transition-colors">
+                    Initialize Link <ArrowRight className="w-3 h-3" />
+                  </a>
+                </Link>
+              </div>
+            </motion.div>
+          ))}
+          
+          {(!posts || posts.length === 0) && [1, 2, 3].map((i) => (
+            <div key={i} className="glass-card rounded-2xl p-6 h-[400px] animate-pulse flex flex-col gap-4">
+              <div className="bg-white/5 rounded-xl aspect-video w-full" />
+              <div className="h-4 bg-white/5 rounded w-1/4" />
+              <div className="h-8 bg-white/5 rounded w-full" />
+              <div className="h-20 bg-white/5 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Original Feature Cards Section */}
       <section className="container mx-auto px-4 py-20 border-t border-white/5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}

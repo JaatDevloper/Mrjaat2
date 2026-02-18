@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Quotes from "@/pages/Quotes";
 import Logs from "@/pages/Logs";
 import AdminPanel from "@/pages/AdminPanel";
+import ArticleRead from "@/pages/ArticleRead";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/quotes" component={Quotes} />
       <Route path="/logs" component={Logs} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/post/:id" component={ArticleRead} />
       <Route component={NotFound} />
     </Switch>
   );
