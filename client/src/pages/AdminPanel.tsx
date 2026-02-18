@@ -12,15 +12,36 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPostSchema, type Post } from "../../../shared/schema.js";
 import { Loader2, Plus, Pencil, Trash2, Key } from "lucide-react";
+import { AdminAuthPrompt } from "@/components/AdminAuthPrompt";
 
 export default function AdminPanel() {
   const { toast } = useToast();
   const [authKey, setAuthKey] = useState<string>(localStorage.getItem("admin_key") || "");
-  const [isEditing, setIsEditing] = useState<Post | null>(null);
+  const [authDialog, setAuthDialog] = useState<{ isOpen: boolean; type: "edit" | "delete"; post: Post | null }>({
+    isOpen: false,
+    type: "delete",
+    post: null,
+  });
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
   });
+
+  const handleActionClick = (type: "edit" | "delete", post: Post) => {
+    setAuthDialog({ isOpen: true, type, post });
+  };
+
+  const handleAuthConfirm = (key: string) => {
+    handleAuthSave(key);
+    if (authDialog.post) {
+      if (authDialog.type === "delete") {
+        deleteMutation.mutate(authDialog.post.id.toString());
+      } else {
+        setIsEditing(authDialog.post);
+      }
+    }
+    setAuthDialog({ isOpen: false, type: "delete", post: null });
+  };
 
   const form = useForm({
     resolver: zodResolver(insertPostSchema),
@@ -138,14 +159,14 @@ export default function AdminPanel() {
                 <Button 
                   size="icon" 
                   variant="outline" 
-                  onClick={() => setIsEditing(post)}
+                  onClick={() => handleActionClick("edit", post)}
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button 
                   size="icon" 
                   variant="destructive"
-                  onClick={() => deleteMutation.mutate(post.id.toString())}
+                  onClick={() => handleActionClick("delete", post)}
                   disabled={deleteMutation.isPending}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -155,6 +176,13 @@ export default function AdminPanel() {
           </Card>
         ))}
       </div>
+
+      <AdminAuthPrompt
+        isOpen={authDialog.isOpen}
+        onClose={() => setAuthDialog({ isOpen: false, type: "delete", post: null })}
+        onConfirm={handleAuthConfirm}
+        title={authDialog.type === "delete" ? "Delete Post Authorization" : "Edit Post Authorization"}
+      />
 
       {isEditing && (
         <Dialog open={!!isEditing} onOpenChange={() => setIsEditing(null)}>
