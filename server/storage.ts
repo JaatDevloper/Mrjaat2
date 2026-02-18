@@ -21,7 +21,8 @@ export class MongoStorage implements IStorage {
   }
 
   async createPost(insertPost: InsertPost): Promise<Post> {
-    const doc = await Content.create(insertPost);
+    const { authKey, ...postData } = insertPost as any;
+    const doc = await Content.create(postData);
     return this.mapDoc(doc);
   }
 

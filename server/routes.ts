@@ -28,7 +28,8 @@ export async function registerRoutes(
       }
       next();
     } catch (err) {
-      res.status(500).json({ message: "Internal server error during auth" });
+      console.error("Internal server error during auth:", err);
+      res.status(500).json({ message: "Internal server error during auth: " + (err instanceof Error ? err.message : String(err)) });
     }
   };
 
@@ -45,14 +46,16 @@ export async function registerRoutes(
 
   app.post("/api/posts", authMiddleware, async (req, res) => {
     try {
+      console.log("Create post request body:", JSON.stringify(req.body, null, 2));
       const postData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(postData);
       res.status(201).json(post);
     } catch (err) {
+      console.error("Create post error:", err);
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error: " + (err instanceof Error ? err.message : String(err)) });
     }
   });
 
