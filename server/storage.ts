@@ -1,4 +1,4 @@
-import { Content } from "./mongodb";
+import { Content } from "./mongodb.js";
 import { type Post, type InsertPost } from "@shared/schema";
 
 export interface IStorage {
