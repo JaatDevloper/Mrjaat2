@@ -4,11 +4,16 @@ import { storage } from "./storage.js";
 import { insertPostSchema } from "../shared/schema.js";
 import { z } from "zod";
 import { Auth } from "./mongodb.js";
+import path from "path";
+import express from "express";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Serve uploads directory
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
   // Initialize admin key if not exists
   const ADMIN_KEY = "A9x7QpL2#vT8mZr5KjW4";
   Auth.findOne({ key: ADMIN_KEY }).then(exists => {
@@ -78,5 +83,52 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // Upload routes
+  app.post("/api/uploads/request-url", authMiddleware, async (req, res) => {
+    try {
+      const { name, contentType } = req.body;
+      const fileName = `${Date.now()}-${name}`;
+      // In this local implementation, we'll just return a local upload URL
+      // Since we don't have S3, we'll use a local endpoint that handles the PUT
+      const protocol = req.secure ? "https" : "http";
+      const host = req.get("host");
+      const uploadURL = `${protocol}://${host}/api/uploads/direct/${fileName}`;
+      
+      res.json({
+        uploadURL,
+        objectPath: `/uploads/${fileName}`,
+        metadata: {
+          name,
+          contentType: contentType || "application/octet-stream"
+        }
+      });
+    } catch (err) {
+      console.error("Upload request error:", err);
+      res.status(500).json({ message: "Failed to generate upload URL" });
+    }
+  });
+
+  app.put("/api/uploads/direct/:filename", async (req, res) => {
+    try {
+      const uploadDir = path.join(process.cwd(), "uploads");
+      await fs.mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, req.params.filename);
+      const writeStream = (await import("fs")).createWriteStream(filePath);
+      req.pipe(writeStream);
+      writeStream.on("finish", () => {
+        res.json({ success: true });
+      });
+      writeStream.on("error", (err) => {
+        console.error("Write stream error:", err);
+        res.status(500).json({ message: "Upload failed" });
+      });
+    } catch (err) {
+      console.error("Direct upload error:", err);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  });
+
   return httpServer;
 }
+
+import fs from "fs/promises";

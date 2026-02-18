@@ -1,5 +1,7 @@
 import { Content } from "./mongodb.js";
 import { type Post, type InsertPost } from "../shared/schema.js";
+import fs from "fs/promises";
+import path from "path";
 
 export interface IStorage {
   getPosts(): Promise<Post[]>;
@@ -7,9 +9,24 @@ export interface IStorage {
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | null>;
   deletePost(id: string): Promise<boolean>;
+  saveFile(name: string, contentType: string, buffer: Buffer): Promise<string>;
 }
 
 export class MongoStorage implements IStorage {
+  private uploadDir = path.join(process.cwd(), "uploads");
+
+  constructor() {
+    this.ensureUploadDir();
+  }
+
+  private async ensureUploadDir() {
+    try {
+      await fs.mkdir(this.uploadDir, { recursive: true });
+    } catch (err) {
+      console.error("Error creating upload directory:", err);
+    }
+  }
+
   async getPosts(): Promise<Post[]> {
     const docs = await Content.find().sort({ createdAt: -1 });
     return docs.map(doc => this.mapDoc(doc));
@@ -34,6 +51,13 @@ export class MongoStorage implements IStorage {
   async deletePost(id: string): Promise<boolean> {
     const result = await Content.findByIdAndDelete(id);
     return !!result;
+  }
+
+  async saveFile(name: string, contentType: string, buffer: Buffer): Promise<string> {
+    const fileName = `${Date.now()}-${name}`;
+    const filePath = path.join(this.uploadDir, fileName);
+    await fs.writeFile(filePath, buffer);
+    return `/uploads/${fileName}`;
   }
 
   private mapDoc(doc: any): Post {
