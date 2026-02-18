@@ -37,6 +37,11 @@ export function registerObjectStorageRoutes(app: Express): void {
    */
   app.post("/api/uploads/request-url", async (req, res) => {
     try {
+      const authKey = req.body.authKey || req.headers['x-auth-key'];
+      if (!authKey || authKey !== process.env.ADMIN_AUTH_KEY) {
+        return res.status(401).json({ error: "Unauthorized: Invalid admin auth key." });
+      }
+
       const { name, size, contentType } = req.body;
 
       if (!name) {

@@ -267,10 +267,38 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
                     <Input {...field} placeholder="Thumbnail URL or upload" />
                   </FormControl>
                   <ObjectUploader
-                    onGetUploadParameters={getUploadParameters}
+                    onGetUploadParameters={async (file) => {
+                      const res = await fetch("/api/uploads/request-url", {
+                        method: "POST",
+                        headers: { 
+                          "Content-Type": "application/json",
+                          "x-auth-key": authKey
+                        },
+                        body: JSON.stringify({
+                          name: file.name,
+                          size: file.size,
+                          contentType: file.type,
+                        }),
+                      });
+                      
+                      if (!res.ok) {
+                        const error = await res.json();
+                        throw new Error(error.message || "Failed to get upload URL");
+                      }
+
+                      const { uploadURL } = await res.json();
+                      return {
+                        method: "PUT",
+                        url: uploadURL,
+                        headers: { "Content-Type": file.type || "application/octet-stream" },
+                      };
+                    }}
                     onComplete={(result: any) => {
                       if (result.successful && result.successful.length > 0) {
                         const file = result.successful[0];
+                        // Extract the path from the uploadURL or use a consistent naming convention
+                        // The server response for request-url usually includes the objectPath
+                        // But Uppy result.successful[0].response.body might have it if the upload was successful
                         const objectPath = file.response?.body?.objectPath || "";
                         if (objectPath) {
                           form.setValue("thumbnail", objectPath, { 
