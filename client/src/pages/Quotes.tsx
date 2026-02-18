@@ -1,11 +1,13 @@
 import { Navigation } from "@/components/Navigation";
 import { useQuotes } from "@/hooks/use-jaat-data";
 import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
+import { AdminAuthPrompt } from "@/components/AdminAuthPrompt";
 import { motion } from "framer-motion";
 import { Quote as QuoteIcon, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const HARDCODED_QUOTES = [
   {
@@ -44,18 +46,26 @@ export default function Quotes() {
   const { data: serverQuotes, isLoading } = useQuotes();
   const quotes = serverQuotes && serverQuotes.length > 0 ? serverQuotes : HARDCODED_QUOTES;
   const { toast } = useToast();
+  const [authDialog, setAuthDialog] = useState<{ isOpen: boolean; quoteId: number | null }>({
+    isOpen: false,
+    quoteId: null,
+  });
 
-  const handleDelete = async (id: number) => {
-    const authKey = prompt("Enter admin auth key to delete this quote:");
-    if (!authKey) return;
+  const handleDeleteClick = (id: number) => {
+    setAuthDialog({ isOpen: true, quoteId: id });
+  };
+
+  const handleAuthConfirm = async (authKey: string) => {
+    if (!authDialog.quoteId) return;
 
     try {
-      await apiRequest("DELETE", `/api/quotes/${id}`, { authKey });
+      await apiRequest("DELETE", `/api/quotes/${authDialog.quoteId}`, { authKey });
       queryClient.invalidateQueries({ queryKey: ["/api/quotes"] });
       toast({
         title: "Quote Deleted",
         description: "The wisdom has been removed from the archive.",
       });
+      setAuthDialog({ isOpen: false, quoteId: null });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -102,7 +112,7 @@ export default function Quotes() {
               >
                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
-                    onClick={() => handleDelete(quote.id)}
+                    onClick={() => handleDeleteClick(quote.id)}
                     className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-md transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -130,6 +140,13 @@ export default function Quotes() {
           </div>
         )}
       </main>
+
+      <AdminAuthPrompt
+        isOpen={authDialog.isOpen}
+        onClose={() => setAuthDialog({ isOpen: false, quoteId: null })}
+        onConfirm={handleAuthConfirm}
+        title="Delete Quote Authorization"
+      />
     </div>
   );
 }

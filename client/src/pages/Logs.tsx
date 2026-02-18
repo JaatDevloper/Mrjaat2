@@ -1,12 +1,45 @@
 import { Navigation } from "@/components/Navigation";
 import { useLogs } from "@/hooks/use-jaat-data";
 import { CreateLogDialog } from "@/components/CreateLogDialog";
+import { AdminAuthPrompt } from "@/components/AdminAuthPrompt";
 import { motion } from "framer-motion";
-import { Terminal, Loader2, Calendar, Clock } from "lucide-react";
+import { Terminal, Loader2, Calendar, Clock, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Logs() {
   const { data: logs, isLoading, isError } = useLogs();
+  const { toast } = useToast();
+  const [authDialog, setAuthDialog] = useState<{ isOpen: boolean; logId: number | null }>({
+    isOpen: false,
+    logId: null,
+  });
+
+  const handleDeleteClick = (id: number) => {
+    setAuthDialog({ isOpen: true, logId: id });
+  };
+
+  const handleAuthConfirm = async (authKey: string) => {
+    if (!authDialog.logId) return;
+
+    try {
+      await apiRequest("DELETE", `/api/logs/${authDialog.logId}`, { authKey });
+      queryClient.invalidateQueries({ queryKey: ["/api/logs"] });
+      toast({
+        title: "Log Entry Deleted",
+        description: "The system entry has been purged.",
+      });
+      setAuthDialog({ isOpen: false, logId: null });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Action Denied",
+        description: error.message || "Invalid admin auth key. Access denied.",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -46,28 +79,36 @@ export default function Logs() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="relative pl-8 md:pl-12"
+                className="relative pl-8 md:pl-12 group"
               >
                 {/* Timeline node */}
                 <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
                 
                 <div className="flex flex-col gap-1 mb-2">
-                  <div className="flex items-center gap-3 text-xs font-mono text-accent/70 uppercase tracking-widest">
-                    {log.createdAt && (
-                      <>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(log.createdAt), 'yyyy-MM-dd')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {format(new Date(log.createdAt), 'HH:mm:ss')}
-                        </span>
-                      </>
-                    )}
-                    <span className="bg-accent/10 px-2 py-0.5 rounded text-accent border border-accent/20">
-                      ID: {log.id.toString().padStart(4, '0')}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs font-mono text-accent/70 uppercase tracking-widest">
+                      {log.createdAt && (
+                        <>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(log.createdAt), 'yyyy-MM-dd')}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(log.createdAt), 'HH:mm:ss')}
+                          </span>
+                        </>
+                      )}
+                      <span className="bg-accent/10 px-2 py-0.5 rounded text-accent border border-accent/20">
+                        ID: {log.id.toString().padStart(4, '0')}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteClick(log.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 rounded border border-red-500/20"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                   
                   <h3 className="text-3xl font-display font-bold text-white uppercase tracking-tight">
@@ -85,6 +126,13 @@ export default function Logs() {
           </div>
         )}
       </main>
+
+      <AdminAuthPrompt
+        isOpen={authDialog.isOpen}
+        onClose={() => setAuthDialog({ isOpen: false, logId: null })}
+        onConfirm={handleAuthConfirm}
+        title="Purge System Log"
+      />
     </div>
   );
 }
