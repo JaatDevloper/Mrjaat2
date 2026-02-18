@@ -54,7 +54,6 @@ export default function AdminPanel() {
       return res.json();
     },
     onSuccess: () => {
-      queryKey: ["/api/posts"];
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       toast({ title: "Post updated successfully" });
       setIsEditing(null);

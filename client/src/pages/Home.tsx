@@ -15,6 +15,7 @@ const GridBackground = () => (
 
 import { useQuery } from "@tanstack/react-query";
 import { type Post } from "../../../shared/schema.js";
+import { format } from "date-fns";
 
 export default function Home() {
   const { data: posts } = useQuery<Post[]>({
@@ -107,7 +108,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {posts?.map((post) => (
             <motion.div 
-              key={post.id}
+              key={post.id.toString()}
               whileHover={{ y: -8 }}
               className="group glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col h-full hover:border-primary/30 transition-all duration-300"
             >

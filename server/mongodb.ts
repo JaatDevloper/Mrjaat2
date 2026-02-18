@@ -15,7 +15,7 @@ const contentSchema = new mongoose.Schema({
   thumbnail: { type: String, required: true },
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
-});
+}, { collection: 'content' });
 
 const authSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true },
