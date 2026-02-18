@@ -249,26 +249,43 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
           render={({ field }: { field: any }) => (
             <FormItem>
               <FormLabel>Thumbnail</FormLabel>
-              <div className="flex gap-2">
-                <FormControl>
-                  <Input {...field} placeholder="Thumbnail URL or upload" />
-                </FormControl>
-                <ObjectUploader
-                  onGetUploadParameters={getUploadParameters}
-                  onComplete={(result: any) => {
-                    if (result.successful && result.successful.length > 0) {
-                      const file = result.successful[0];
-                      // Use the objectPath returned by the backend in Step 1
-                      const objectPath = file.response?.body?.objectPath || "";
-                      if (objectPath) {
-                        form.setValue("thumbnail", objectPath);
-                        toast({ title: "Thumbnail uploaded" });
+              <div className="space-y-2">
+                {field.value && (
+                  <div className="relative w-full h-40 rounded-md overflow-hidden border bg-muted">
+                    <img 
+                      src={field.value} 
+                      alt="Thumbnail preview" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Invalid+Image+URL';
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input {...field} placeholder="Thumbnail URL or upload" />
+                  </FormControl>
+                  <ObjectUploader
+                    onGetUploadParameters={getUploadParameters}
+                    onComplete={(result: any) => {
+                      if (result.successful && result.successful.length > 0) {
+                        const file = result.successful[0];
+                        const objectPath = file.response?.body?.objectPath || "";
+                        if (objectPath) {
+                          form.setValue("thumbnail", objectPath, { 
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true 
+                          });
+                          toast({ title: "Thumbnail uploaded" });
+                        }
                       }
-                    }
-                  }}
-                >
-                  <ImagePlus className="h-4 w-4" />
-                </ObjectUploader>
+                    }}
+                  >
+                    <ImagePlus className="h-4 w-4" />
+                  </ObjectUploader>
+                </div>
               </div>
             </FormItem>
           )}
