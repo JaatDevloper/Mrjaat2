@@ -246,7 +246,7 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
         <FormField
           control={form.control}
           name="thumbnail"
-          render={({ field }: { field: any }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Thumbnail</FormLabel>
               <div className="space-y-2">
@@ -283,7 +283,9 @@ function PostForm({ onSubmit, isPending, initialData, authKey }: any) {
                       }
                     }}
                   >
-                    <ImagePlus className="h-4 w-4" />
+                    <Button type="button" size="icon" variant="outline">
+                      <ImagePlus className="h-4 w-4" />
+                    </Button>
                   </ObjectUploader>
                 </div>
               </div>
