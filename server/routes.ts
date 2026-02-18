@@ -3,18 +3,33 @@ import type { Server } from "http";
 import { storage } from "./storage.js";
 import { insertPostSchema } from "../shared/schema.js";
 import { z } from "zod";
+import { Auth } from "./mongodb.js";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
   
-  const authMiddleware = (req: any, res: any, next: any) => {
-    const authKey = req.body.authKey || req.headers['x-auth-key'];
-    if (authKey !== process.env.ADMIN_AUTH_KEY) {
-      return res.status(401).json({ message: "Unauthorized: Invalid admin auth key." });
+  // Initialize admin key if not exists
+  const ADMIN_KEY = "A9x7QpL2#vT8mZr5KjW4";
+  Auth.findOne({ key: ADMIN_KEY }).then(exists => {
+    if (!exists) {
+      Auth.create({ key: ADMIN_KEY }).then(() => console.log("Admin key initialized in MongoDB")).catch(err => console.error("Error initializing admin key:", err));
     }
-    next();
+  });
+
+  const authMiddleware = async (req: any, res: any, next: any) => {
+    const authKey = req.body.authKey || req.headers['x-auth-key'];
+    
+    try {
+      const validKey = await Auth.findOne({ key: authKey });
+      if (!validKey) {
+        return res.status(401).json({ message: "Unauthorized: Invalid admin auth key." });
+      }
+      next();
+    } catch (err) {
+      res.status(500).json({ message: "Internal server error during auth" });
+    }
   };
 
   app.get("/api/posts", async (_req, res) => {

@@ -17,4 +17,10 @@ const contentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const authSchema = new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 export const Content = mongoose.model("Content", contentSchema, "content");
+export const Auth = mongoose.model("Auth", authSchema, "auth");
